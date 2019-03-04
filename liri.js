@@ -1,9 +1,10 @@
-require("dotenv").config("./.env.txt");
+require("dotenv").config();
 
 var keys = require("./keys.js");
 var axios = require("axios");
 var spotify = new Spotify(keys.spotify);
 var fs = require("fs");
+var moment = require("moment");
 
 var search = process.argv[2]
 
@@ -39,7 +40,8 @@ function findConcert(artist){
         var showData = [
             "\nName of the venue: " + resData[0].venue.name,
             "Location: " + resData[0].venue.city,
-            "Date: " + resData[0].datetime
+            "Date: " + moment(resData[0].datetime).format('L')
+
         ].join("\n\n");
         
         console.log(showData);
@@ -49,7 +51,6 @@ function findConcert(artist){
         });
     })
 }
-
 
 // Finds Movie
 function findMovie(movie){
@@ -77,14 +78,15 @@ function findMovie(movie){
     })
 }
 
-
+// Read random.txt and do what it says
 function readTxt(){
     fs.readFile("random.txt","utf-8", function(err, data){
         if(err) throw err;
         var list = data.split(",");
         var newSearch = list[0];
-        var newTerm = list[1];
+        var newTerm = list[1].substring(1,list[1].length-1);
         
+
         if(newSearch === 'concert-this'){
             console.log("concert search: " + newTerm);
             findConcert(newTerm); 
@@ -94,6 +96,20 @@ function readTxt(){
             console.log("movie search: " + newTerm);
             findMovie(newTerm);
         }
-    })
 
+        for(var i = 2; i < list.length; i=i+2){
+            newSearch = list[i].substring(2);
+            newTerm = list[i+1].substring(1,list[i+1].length-1);
+
+            if(newSearch === 'concert-this'){
+                console.log("concert search: " + newTerm);
+                findConcert(newTerm); 
+            } else if(newSearch === 'spotify-this-song'){
+                console.log("spotify search");
+            } else if(newSearch === 'movie-this'){
+                console.log("movie search: " + newTerm);
+                findMovie(newTerm);
+            }
+        }
+    })
 }
